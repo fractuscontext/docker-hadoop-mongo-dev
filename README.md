@@ -24,8 +24,8 @@ podman exec -it namenode bash
 hadoop fs -mkdir -p /user/input
 hadoop fs -put /workspace/data.txt /user/input/
 hadoop jar /opt/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
- -files mapper.py,reducer.py -mapper "python3 mapper.py" \
- -reducer "python3 reducer.py" -input /user/input/data.txt -output /user/output
+    -files mapper.py,reducer.py -mapper "python3 mapper.py" \
+    -reducer "python3 reducer.py" -input /user/input/data.txt -output /user/output
 
 # Reset everything:
 rm -rf hdfs/ mongo_data/
