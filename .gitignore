@@ -1,0 +1,11 @@
+/mongo_data/
+/hdfs/
+
+.env
+
+.DS_Store
+
+/workspace/*
+!/workspace/.gitkeep
+
+.direnv/

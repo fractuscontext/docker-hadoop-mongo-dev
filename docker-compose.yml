@@ -1,0 +1,75 @@
+x-hadoop-node: &hadoop-node
+  build: .
+  volumes:
+    - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+    - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+    - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+    - ./workspace:/workspace
+  env_file:
+    - ./config/hadoop.env
+
+services:
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo_data:/data/db
+
+  namenode:
+    <<: *hadoop-node
+    container_name: namenode
+    hostname: namenode
+    command: >
+      bash -c "if [ ! -d /opt/hadoop/dfs/name/current ]; then hdfs namenode -format -force -nonInteractive; fi && hdfs namenode"
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      # Inherit the base volumes inc add the namenode specific one
+      - ./hdfs/namenode:/opt/hadoop/dfs/name
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./workspace:/workspace
+
+  datanode:
+    <<: *hadoop-node
+    container_name: datanode
+    hostname: datanode
+    command: hdfs datanode
+    depends_on:
+      - namenode
+    ports:
+      - "9864:9864"
+    volumes:
+      - ./hdfs/datanode:/opt/hadoop/dfs/data
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./workspace:/workspace
+
+  resourcemanager:
+    <<: *hadoop-node
+    container_name: resourcemanager
+    hostname: resourcemanager
+    command: yarn resourcemanager
+    depends_on:
+      - namenode
+      - datanode
+    ports:
+      - "8088:8088"
+
+  nodemanager:
+    <<: *hadoop-node
+    container_name: nodemanager
+    hostname: nodemanager
+    command: yarn nodemanager
+    depends_on:
+      - resourcemanager
+    ports:
+      - "8042:8042"
