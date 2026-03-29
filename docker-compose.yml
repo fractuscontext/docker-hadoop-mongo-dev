@@ -8,6 +8,7 @@ x-hadoop-node: &hadoop-node
     - ./workspace:/workspace
   env_file:
     - ./config/hadoop.env
+  mem_limit: 1g
 
 services:
   mongodb:
@@ -17,6 +18,7 @@ services:
       - "27017:27017"
     volumes:
       - ./mongo_data:/data/db
+    mem_limit: 1g
 
   namenode:
     <<: *hadoop-node
@@ -45,6 +47,7 @@ services:
       - namenode
     ports:
       - "9864:9864"
+      - "9866:9866"
     volumes:
       - ./hdfs/datanode:/opt/hadoop/dfs/data
       - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
@@ -62,6 +65,7 @@ services:
       - namenode
       - datanode
     ports:
+      - "8032:8032"
       - "8088:8088"
 
   nodemanager:
@@ -73,3 +77,4 @@ services:
       - resourcemanager
     ports:
       - "8042:8042"
+    mem_limit: 2g
